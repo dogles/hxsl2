@@ -33,23 +33,23 @@ class Compiler {
 
 	var cur : Code;
 	var allVars : Array<Variable>;
-	var scopeVars : Hash<Variable>;
+	var scopeVars : Map<String, Variable>;
 	var ops : Array<Array<{ p1 : VarType, p2 : VarType, r : VarType }>>;
 	var tempCount : Int;
-	var helpers : Hash<Data.ParsedCode>;
+	var helpers : Map<String, Data.ParsedCode>;
 	var ret : { v : CodeValue };
 	var inConstantExpr : Bool;
 	var allowTextureRead : Bool;
-	var globalsRead : Hash<Variable>;
+	var globalsRead : Map<String, Variable>;
 	var input : Array<Variable>;
-	var compileVars : Hash<Variable>;
-	var iterators : IntHash<Variable>;
+	var compileVars : Map<String, Variable>;
+	var iterators : Map<Int, Variable>;
 
 	public var config : { inlTranspose : Bool, inlInt : Bool, allowAllWMasks : Bool, forceReads : Bool };
 
 	public function new() {
 		tempCount = 0;
-		scopeVars = new Hash();
+		scopeVars = new Map();
 		config = { inlTranspose : true, inlInt : true, allowAllWMasks : false, forceReads : true };
 		ops = new Array();
 		for( o in initOps() )
@@ -112,13 +112,13 @@ class Compiler {
 
 	public function compile( h : ParsedHxsl ) : String {
 		allVars = [];
-		iterators = new IntHash();
+		iterators = new Map();
 		allocVar("out", VOut, TFloat4, h.pos);
 
 		helpers = h.helpers;
 
 		input = [];
-		compileVars = new Hash();
+		compileVars = new Map();
 		for ( v in h.vars ) {
 			var k = v.k;
 			switch ( v.t ) {
@@ -153,7 +153,7 @@ class Compiler {
 			tex : [],
 			tempSize : 0,
 		};
-		globalsRead = new Hash();
+		globalsRead = new Map();
 
 		for( v in c.args ) {
 			switch( v.t ) {
@@ -174,7 +174,7 @@ class Compiler {
 
 		// cleanup
 		var old = scopeVars;
-		scopeVars = new Hash();
+		scopeVars = new Map();
 		for( v in old ) {
 			if ( v.kind == null ) {
 				scopeVars.set(v.name, v);
@@ -188,13 +188,13 @@ class Compiler {
 	}
 
 	function saveVars() {
-		var old = new Hash();
+		var old = new Map();
 		for( v in scopeVars.keys() )
 			old.set(v, scopeVars.get(v));
 		return old;
 	}
 
-	function closeBlock( old : Hash<Variable> ) {
+	function closeBlock( old : Map<String, Variable> ) {
 		for( v in scopeVars )
 			if( v.kind == VTmp && old.get(v.name) != v && !v.read )
 				warn("Unused local variable '" + v.name + "'", v.pos);
@@ -745,7 +745,7 @@ class Compiler {
 		case PAccess(vname, eindex):
 			var v = scopeVars.get(vname);
 			if( v == null ) error("Unknown variable '" + vname + "'", e.p);
-			var type, index;
+			var type = null, index = null;
 			switch( v.type ) {
 			case TArray(t, _):
 				type = t;
@@ -893,11 +893,11 @@ class Compiler {
 		case PRow(v, index):
 			var v = compileValue(v);
 			switch( v.t ) {
-			case TMatrix(r, c, t):
+			case TMatrix(_, c, t):
 				if( index < 0 || index >= c ) error("You can't read row " + index + " on " + typeStr(v.t), e.p);
 				if( t.t == null ) t.t = false;
 				switch( v.d ) {
-				case CVar(vr, swiz):
+				case CVar(vr, _):
 					if( t.t ) error("You can't read a row from a transposed matrix", e.p); // TODO : use temp
 					checkRead(v);
 					var vr = rowVar(vr, index);
@@ -1024,7 +1024,7 @@ class Compiler {
 		if( !tryUnify(t1, t2) ) {
 			// if we only have the transpose flag different, let's print a nice error message
 			switch(t1) {
-			case TMatrix(r, c, t):
+			case TMatrix(r, c, _):
 				switch( t2 ) {
 				case TMatrix(r2, c2, t):
 					if( r == r2 && c == c2 && t.t != null ) {
@@ -1069,7 +1069,7 @@ class Compiler {
 		};
 	}
 
-	static function parseLiteral(s:String) : Float {
+	static function parseLiteral(s:String) : Null<Float> {
 		if ( s == "null" ) { return 0.0; }
 		if ( s == "true" ) { return 1.0; }
 		else if ( s == "false" ) { return 0.0; }
@@ -1085,7 +1085,7 @@ class Compiler {
 				else if ( op == CAnd || op == COr ) 
 					{ d : CUnop(CNot, cond), t : cond.t, p : cond.p }
 				else null;
-			case CVar(v, swiz): if ( v.type == TBool ) { d : CUnop(CNot, cond), t : cond.t, p : cond.p } else null;
+			case CVar(v, _): if ( v.type == TBool ) { d : CUnop(CNot, cond), t : cond.t, p : cond.p } else null;
 			default: null;
 		}
 		if( cond2 == null ) unify(cond.t, TBool, cond.p);

@@ -27,11 +27,7 @@
 package format.hxsl;
 import format.hxsl.Data;
 
-#if flash
-	private typedef TypeMap = flash.utils.TypedDictionary<String, VarType>;
-#else
-	private typedef TypeMap = Hash<VarType>;
-#end
+private typedef TypeMap = Map<String, VarType>;
 
 /** Simple shader builder that simply exports information about the shader. */
 @:autoBuild(format.hxsl.Build.shader()) class PicoShader {
@@ -66,8 +62,8 @@ import format.hxsl.Data;
 		return out;
 	}
 
-	public function createInstance(compileVars:Dynamic=null) : ShaderInstance {
-		return new ShaderInstance(this, new RuntimeCompiler().compile(idata, compileVars));
+	public function createInstance(compileVars:Dynamic=null) : PicoShaderInstance {
+		return new PicoShaderInstance(this, new RuntimeCompiler().compile(idata, compileVars));
 	}
 
 	function getData() : String {

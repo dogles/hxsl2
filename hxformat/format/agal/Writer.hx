@@ -38,7 +38,7 @@ class Writer {
 
 	public function write( data : Data ) {
 		o.writeByte(0xA0);
-		o.writeInt31(1); // version
+		o.writeInt32(1); // version
 		o.writeByte(0xA1);
 		o.writeByte(data.fragmentShader ? 1 : 0);
 		var idKil = Type.enumIndex(OKil(null));
@@ -47,14 +47,14 @@ class Writer {
 			var idx = Type.enumIndex(c);
 			var params = Type.enumParameters(c);
 			var dst : Reg = params[0];
-			o.writeUInt30(( idx >= idKil ) ? (idx - idKil + 0x27) : idx);
+			o.writeInt32(( idx >= idKil ) ? (idx - idKil + 0x27) : idx);
 			if( idx == idKil ) {
-				o.writeUInt30(0);
+				o.writeInt32(0);
 				writeSrc(dst);
 				writeSrc(null);
 				continue;
 			}
-			o.writeUInt30( dst.index | (maskBits(dst.swiz) << 16) | (regType(dst.t) << 24));
+			o.writeInt32( dst.index | (maskBits(dst.swiz) << 16) | (regType(dst.t) << 24));
 			writeSrc(params[1]);
 			if( idx == idTex )
 				writeTex(params[2]);
@@ -119,8 +119,8 @@ class Writer {
 
 	function writeSrc( s : Reg ) {
 		if( s == null ) {
-			o.writeUInt30(0);
-			o.writeUInt30(0);
+			o.writeInt32(0);
+			o.writeInt32(0);
 			return;
 		}
 		if( s.access == null ) {

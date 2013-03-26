@@ -175,7 +175,7 @@ typedef Data = {
 	var vertex : Code;
 	var fragment : Code;
 	var input : Array<Variable>;
-	var compileVars : Hash<Variable>;
+	var compileVars : Map<String, Variable>;
 }
 
 // parsed hxsl
@@ -228,7 +228,7 @@ typedef ParsedHxsl = {
 	var vars : Array<ParsedVar>;
 	var vertex : ParsedCode;
 	var fragment : ParsedCode;
-	var helpers : Hash<ParsedCode>;
+	var helpers : Map<String, ParsedCode>;
 }
 
 typedef Error = haxe.macro.Expr.Error;
@@ -259,7 +259,7 @@ class Tools {
 		case TArray(t, size):
 			var v = regSize(t);
 			switch(t) {
-			case TMatrix(w, h, t): if ( v < 4 ) v = 4;
+			case TMatrix(_, _, _): if ( v < 4 ) v = 4;
 			default:
 			}
 			v * size;

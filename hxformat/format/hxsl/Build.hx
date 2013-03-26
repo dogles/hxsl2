@@ -34,7 +34,7 @@ import format.hxsl.Data;
 #end
 
 class Build {
-	@:macro public static function shader() : Array<Field> {
+	macro public static function shader() : Array<Field> {
 		var cl = Context.getLocalClass().get();
 		var fields = Context.getBuildFields();
 		var shader = null;
