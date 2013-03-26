@@ -671,7 +671,7 @@ class Parser {
 								switch( pl[0].expr ) {
 								case EConst(c):
 									switch( c ) {
-									case CInt(v), CFloat(v):
+									case CInt(_), CFloat(_):
 										flags.push( { v : {v : PConst("lod"), p : p.pos}, e : parseValue(pl[0]), p : p.pos } );
 										continue;
 									default:

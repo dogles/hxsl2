@@ -346,9 +346,9 @@ class RuntimeCompiler
 		switch (e.d) {
 		case CLiteral(_): return true;
 		case CVar(vr, swiz): return varEvaluatable(vr, swiz);
-		case CSwiz(e, swiz): return evaluatable(e);
-		case COp(op, e1, e2): return evaluatable(e1) && evaluatable(e2);
-		case CUnop(op, e): return evaluatable(e);
+		case CSwiz(e, _): return evaluatable(e);
+		case COp(_, e1, e2): return evaluatable(e1) && evaluatable(e2);
+		case CUnop(_, e): return evaluatable(e);
 		case CAccess(v, idx): 
 			if ( evaluatable(idx) ) {
 				if ( v.kind == VCompileConstant ) return true;

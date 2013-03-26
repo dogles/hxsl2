@@ -893,11 +893,11 @@ class Compiler {
 		case PRow(v, index):
 			var v = compileValue(v);
 			switch( v.t ) {
-			case TMatrix(r, c, t):
+			case TMatrix(_, c, t):
 				if( index < 0 || index >= c ) error("You can't read row " + index + " on " + typeStr(v.t), e.p);
 				if( t.t == null ) t.t = false;
 				switch( v.d ) {
-				case CVar(vr, swiz):
+				case CVar(vr, _):
 					if( t.t ) error("You can't read a row from a transposed matrix", e.p); // TODO : use temp
 					checkRead(v);
 					var vr = rowVar(vr, index);
@@ -1024,7 +1024,7 @@ class Compiler {
 		if( !tryUnify(t1, t2) ) {
 			// if we only have the transpose flag different, let's print a nice error message
 			switch(t1) {
-			case TMatrix(r, c, t):
+			case TMatrix(r, c, _):
 				switch( t2 ) {
 				case TMatrix(r2, c2, t):
 					if( r == r2 && c == c2 && t.t != null ) {
@@ -1085,7 +1085,7 @@ class Compiler {
 				else if ( op == CAnd || op == COr ) 
 					{ d : CUnop(CNot, cond), t : cond.t, p : cond.p }
 				else null;
-			case CVar(v, swiz): if ( v.type == TBool ) { d : CUnop(CNot, cond), t : cond.t, p : cond.p } else null;
+			case CVar(v, _): if ( v.type == TBool ) { d : CUnop(CNot, cond), t : cond.t, p : cond.p } else null;
 			default: null;
 		}
 		if( cond2 == null ) unify(cond.t, TBool, cond.p);

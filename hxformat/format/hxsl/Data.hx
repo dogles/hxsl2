@@ -259,7 +259,7 @@ class Tools {
 		case TArray(t, size):
 			var v = regSize(t);
 			switch(t) {
-			case TMatrix(w, h, t): if ( v < 4 ) v = 4;
+			case TMatrix(_, _, _): if ( v < 4 ) v = 4;
 			default:
 			}
 			v * size;
