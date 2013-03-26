@@ -34,14 +34,14 @@ class Parser {
 
 	var vertex : Function;
 	var fragment : Function;
-	var helpers : Hash<Function>;
+	var helpers : Map<String, Function>;
 	var vars : Array<ParsedVar>;
 	var cur : ParsedCode;
 	var allowReturn : Bool;
 	var inConditional : Bool;
 
 	public function new() {
-		helpers = new Hash();
+		helpers = new Map();
 		vars = [];
 	}
 
@@ -64,7 +64,7 @@ class Parser {
 		allowReturn = false;
 		var vs = buildShader(vertex);
 		var fs = buildShader(fragment);
-		var help = new Hash();
+		var help = new Map();
 		allowReturn = true;
 		for( h in helpers.keys() )
 			help.set(h, buildShader(helpers.get(h)));
@@ -334,7 +334,7 @@ class Parser {
 				switch( v.expr ) {
 				case EConst(c):
 					switch( c ) {
-					case CIdent(i), CType(i): vname = i;
+					case CIdent(i): vname = i;
 					default:
 					}
 				default:
@@ -385,7 +385,7 @@ class Parser {
 			return { v : PSwiz(v,swiz), p : e.pos };
 		case EConst(c):
 			switch( c ) {
-			case CType(i), CIdent(i):
+			case CIdent(i):
 				if ( i == "null" || i == "true" || i == "false" ) {
 					return { v : PConst(i), p : e.pos };
 				} else {
@@ -428,7 +428,7 @@ class Parser {
 				return makeCall(f, [v].concat(params), e.pos);
 			case EConst(c):
 				switch( c ) {
-				case CIdent(i), CType(i):
+				case CIdent(i):
 					return makeCall(i, params, e.pos);
 				default:
 				}
@@ -503,31 +503,29 @@ class Parser {
 				vl2.push( { name : x.name, type : x.type, expr : if( x.expr == null ) null else replaceVar(v, by, x.expr) } );
 			EVars(vl2);
 		case ECall(e, el):
-			ECall(replaceVar(v, by, e), Lambda.array(Lambda.map(el, callback(replaceVar, v, by))));
+			ECall(replaceVar(v, by, e), Lambda.array(Lambda.map(el, replaceVar.bind(v, by))));
 		case EFor(it, e):
 			EFor(replaceVar(v, by, it), replaceVar(v, by, e));
 		case EBlock(el):
-			EBlock(Lambda.array(Lambda.map(el, callback(replaceVar, v, by))));
+			EBlock(Lambda.array(Lambda.map(el, replaceVar.bind(v, by))));
 		case EArrayDecl(el):
-			EArrayDecl(Lambda.array(Lambda.map(el, callback(replaceVar, v, by))));
+			EArrayDecl(Lambda.array(Lambda.map(el, replaceVar.bind(v, by))));
 		case EIf(cond, eif, eelse), ETernary(cond,eif,eelse):
 			EIf(replaceVar(v, by, cond), replaceVar(v, by, eif), eelse == null ? null : replaceVar(v, by, eelse));
 		case EField(e, f):
 			EField(replaceVar(v, by, e), f);
 		case EParenthesis(e):
 			EParenthesis(replaceVar(v, by, e));
-		case EType(e, f):
-			EType(replaceVar(v, by, e), f);
 		case EArray(e1, e2):
 			EArray(replaceVar(v, by, e1), replaceVar(v, by, e2));
 		case EIn(a,b):
 			EIn(replaceVar(v,by,a),replaceVar(v,by,b));
+		case EMeta(m, e):
+			EMeta(m, replaceVar(v, by, e));
 		case EWhile(_), EUntyped(_), ETry(_), EThrow(_), ESwitch(_), EReturn(_), EObjectDecl(_), ENew(_), EFunction(_), EDisplay(_), EDisplayNew(_), EContinue, ECast(_), EBreak:
 			e.expr;
-		/*
 		case ECheckType(e,t):
 			ECheckType(replaceVar(v, by, e),t);
-		*/
 		}, pos : e.pos };
 	}
 

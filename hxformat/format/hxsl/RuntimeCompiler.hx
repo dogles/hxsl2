@@ -31,28 +31,28 @@ import haxe.macro.Expr;
 // Responsible for taking intermediate code and compiling final code, given a set of constants at runtime.
 class RuntimeCompiler
 {
-	var compileVars : Hash<Array<Float>>;
-	var vars : Array<IntHash<Variable>>;
-	var literals : IntHash<Variable>;
+	var compileVars : Map<String, Array<Float>>;
+	var vars : Array<Map<Int, Variable>>;
+	var literals : Map<Int, Variable>;
 	var consts : Array<Array<Float>>;
-	var tempMapping : IntHash<Int>;
+	var tempMapping : Map<Int, Int>;
 	var cur : Code;
 	var vertex : Code;
 	var fragment : Code;
 	var indexes : Array<Int>;
 	var exprs : Array< {v:Null<CodeValue>, e:CodeValue} >;
-	var evaluations : IntHash< {writeBits:Int, vals:Array<Float>} >;
+	var evaluations : Map<Int, {writeBits:Int, vals:Array<Float>} >;
 
 	public function new() {
 	}
 
 	public function compile( intermediate:Data, compileVars:Dynamic ) : Data {
 		indexes = [0, 0, 0, 0, 0, 0];
-		evaluations = new IntHash();
+		evaluations = new Map();
 		vars = [];
-		for ( i in 0...7 ) vars.push( new IntHash() );
+		for ( i in 0...7 ) vars.push( new Map() );
 
-		this.compileVars = new Hash();
+		this.compileVars = new Map();
 		if ( compileVars != null ) {
 			for ( c in Reflect.fields(compileVars) ) {
 				var vr = intermediate.compileVars.get(c);
@@ -137,7 +137,7 @@ class RuntimeCompiler
 		cur = code;
 		consts = [];
 		exprs = [];
-		literals = new IntHash();
+		literals = new Map();
 
 		var byIndex = function(l, r) {
 			if ( l.index < r.index ) return -1;
@@ -183,11 +183,11 @@ class RuntimeCompiler
 		tex.sort(byIndex);
 
 		for ( i in 0...vars.length ) {
-			switch (i) {
-			case Type.enumIndex(VInput), Type.enumIndex(VVar), Type.enumIndex(VOut):
-				continue;
-			default: vars[i] = new IntHash();
-			}
+      if(i == Type.enumIndex(VInput) || i == Type.enumIndex(VVar) || i == Type.enumIndex(VOut)) {
+        continue;
+      } else {
+        vars[i] = new Map();
+      }
 		}
 
 		return {

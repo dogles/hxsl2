@@ -263,7 +263,7 @@ class Serialize
 
 	public static function unserialize( s:String ) : Data {
 		var s = new haxe.Unserializer(s);
-		var varmap = new IntHash<Variable>();
+		var varmap = new Map<Int, Variable>();
 		var numVars = s.unserialize();
 		for ( i in 0...numVars ) {
 			var uid:Int = i;
@@ -303,7 +303,7 @@ class Serialize
 		}
 
 		var cv:Array<Int> = s.unserialize();
-		var compileVars = new Hash<Variable>();
+		var compileVars = new Map<String, Variable>();
 		for ( c in cv ) {
 			var v = varmap.get(c);
 			compileVars.set(v.name, v);
@@ -315,7 +315,7 @@ class Serialize
 		return { input:inputs, compileVars:compileVars, vertex:vertex, fragment:fragment };
 	}
 	
-	static function unserializeCode( varmap:IntHash<Variable>, s:haxe.Unserializer, vertex:Bool ) : Code {
+	static function unserializeCode( varmap:Map<Int, Variable>, s:haxe.Unserializer, vertex:Bool ) : Code {
 		var pos = unserializePos(s);
 
 		var numArgs = s.unserialize();
@@ -343,7 +343,7 @@ class Serialize
 		return { pos:pos, args:args, tex:tex, exprs:exprs, consts:consts, vertex:vertex, tempSize:0 };
 	}
 
-	static function unserializeCodeValue( varmap:IntHash<Variable>, s:haxe.Unserializer ) : CodeValue {
+	static function unserializeCodeValue( varmap:Map<Int, Variable>, s:haxe.Unserializer ) : CodeValue {
 		var dindex:Null<Int> = s.unserialize();
 		if ( dindex == null ) {
 			return null;
@@ -500,11 +500,10 @@ class Serialize
 		var flags = [];
 		for ( i in 0...len ) {
 			var enumIndex:Int = s.unserialize();
-			switch ( enumIndex ) {
-			case Type.enumIndex(TLodBias(0)):
+			if(enumIndex == Type.enumIndex(TLodBias(0))) {
 				var lod = s.unserialize();
 				flags.push(TLodBias(lod));
-			default:
+			} else {
 				flags.push(Type.createEnumIndex(TexFlag, enumIndex));
 			}
 		}

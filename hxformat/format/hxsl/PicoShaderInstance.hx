@@ -27,11 +27,7 @@
 package format.hxsl;
 import format.hxsl.Data;
 
-#if flash
-	private typedef NameMap = flash.utils.TypedDictionary<String, Int>;
-#else
-	private typedef NameMap = Hash<Int>;
-#end
+private typedef NameMap = Map<String, Int>;
 
 enum ProgramType { Vertex; Fragment; }
 
@@ -39,7 +35,7 @@ enum ProgramType { Vertex; Fragment; }
  *  Represents a shader, compiled to the platform-specific format.
  *  Simply provides the compiled code and reflection info.
  */
-class ShaderInstance
+class PicoShaderInstance
 {
 	public function new(shader:PicoShader, data:Data) {
 		var c = new format.agal.Compiler();
@@ -81,14 +77,14 @@ class ShaderInstance
 		this.vertexParamRegisters = new NameMap();
 		for ( arg in data.vertex.args ) {
 			this.vertexParamRegisters.set(arg.name, arg.index);
-			this.vertexLiteralStart = arg.index + Data.Tools.regSize(arg.type);
+			this.vertexLiteralStart = arg.index + Tools.regSize(arg.type);
 		}
 
 		this.fragmentLiteralStart = 0;
 		this.fragmentParamRegisters = new NameMap();
 		for ( arg in data.fragment.args ) {
 			this.fragmentParamRegisters.set(arg.name, arg.index);
-			this.fragmentLiteralStart = arg.index + Data.Tools.regSize(arg.type);
+			this.fragmentLiteralStart = arg.index + Tools.regSize(arg.type);
 		}
 
 		this.textureRegisters = new NameMap();

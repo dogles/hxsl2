@@ -175,7 +175,7 @@ typedef Data = {
 	var vertex : Code;
 	var fragment : Code;
 	var input : Array<Variable>;
-	var compileVars : Hash<Variable>;
+	var compileVars : Map<String, Variable>;
 }
 
 // parsed hxsl
@@ -228,7 +228,7 @@ typedef ParsedHxsl = {
 	var vars : Array<ParsedVar>;
 	var vertex : ParsedCode;
 	var fragment : ParsedCode;
-	var helpers : Hash<ParsedCode>;
+	var helpers : Map<String, ParsedCode>;
 }
 
 typedef Error = haxe.macro.Expr.Error;
